@@ -8,13 +8,33 @@ class ErrorDomainIdIsMissing extends Error {
 
 //endregion error
 
+//region fn
+
+function timestamp() {
+    return (new Date).toISOString();
+}
+
+//endregion fn
+
 function Domain({
-                    'prefix':    prefix = {
+                    'prefix':                 prefix = {
                         'system': "sys:",
                         'sys':    "sys:",
                         'domain': "dom:",
                         'dom':    "dom:"
                     },
+                    'prefix_self':            prefix_self = "",
+                    'prefix_self_model':      prefix_self_model = "",
+                    'prefix_system':          prefix_system = "",
+                    'prefix_system_model':    prefix_system_model = "",
+                    'prefix_domain':          prefix_domain = "",
+                    'prefix_domain_model':    prefix_domain_model = "",
+                    'prefix_ldp_model':       prefix_ldp_model = "ldp:",
+                    'prefix_testsuite':       prefix_testsuite = "",
+                    'prefix_testsuite_model': prefix_testsuite_model = "",
+                    'prefix_testbed':         prefix_testbed = "",
+                    'prefix_testbed_model':   prefix_testbed_model = "",
+                    //
                     'type':      type = [],
                     'predicate': predicate = undefined,
                     'fn':        fn,
@@ -36,23 +56,23 @@ function Domain({
             };
             let temp_prefix = "";
 
-            temp_prefix = `${prefix['domain']}users`;
+            temp_prefix = `${prefix_domain_model}users`;
             if (domain[temp_prefix] && !presentation[temp_prefix])
                 presentation[temp_prefix] = await domain[temp_prefix]();
 
-            temp_prefix = `${prefix['domain']}groups`;
+            temp_prefix = `${prefix_domain_model}groups`;
             if (domain[temp_prefix] && !presentation[temp_prefix])
                 presentation[temp_prefix] = await domain[temp_prefix]();
 
-            temp_prefix = `${prefix['domain']}roles`;
+            temp_prefix = `${prefix_domain_model}roles`;
             if (domain[temp_prefix] && !presentation[temp_prefix])
                 presentation[temp_prefix] = await domain[temp_prefix]();
 
-            temp_prefix = `${prefix['domain']}memberships`;
+            temp_prefix = `${prefix_domain_model}memberships`;
             if (domain[temp_prefix] && !presentation[temp_prefix])
                 presentation[temp_prefix] = await domain[temp_prefix]();
 
-            temp_prefix = `${prefix['domain']}credentials`;
+            temp_prefix = `${prefix_domain_model}credentials`;
             if (domain[temp_prefix] && !presentation[temp_prefix])
                 presentation[temp_prefix] = await domain[temp_prefix]();
 
@@ -71,10 +91,12 @@ function Domain({
         });
     } // if ()
 
-    tmp_node = (node['users'] || node[`${prefix['domain']}users`]);
+    tmp_node = (node['users'] || node[`${prefix_domain_model}users`]);
     if (tmp_node)
-        Object.defineProperty(fn, `${prefix['domain']}users`, {
+        Object.defineProperty(fn, `${prefix_domain_model}users`, {
             value:      new Users({
+                'prefix_ldp_model': prefix_ldp_model,
+                //
                 'type': [],
                 'node': tmp_node,
                 'fn':   undefined
@@ -82,44 +104,48 @@ function Domain({
             enumerable: true
         });
 
-    tmp_node = (node['groups'] || node[`${prefix['domain']}groups`]);
+    tmp_node = (node['groups'] || node[`${prefix_domain_model}groups`]);
     if (tmp_node)
-        Object.defineProperty(fn, `${prefix['domain']}groups`, {
+        Object.defineProperty(fn, `${prefix_domain_model}groups`, {
             value:      new Groups({
-                'type': [],
+                'prefix_ldp_model': prefix_ldp_model,
+                //   'type': [],
                 'node': tmp_node,
                 'fn':   undefined
             }),
             enumerable: true
         });
 
-    tmp_node = (node['roles'] || node[`${prefix['domain']}roles`]);
+    tmp_node = (node['roles'] || node[`${prefix_domain_model}roles`]);
     if (tmp_node)
-        Object.defineProperty(fn, `${prefix['domain']}roles`, {
+        Object.defineProperty(fn, `${prefix_domain_model}roles`, {
             value:      new Roles({
-                'type': [],
+                'prefix_ldp_model': prefix_ldp_model,
+                //  'type': [],
                 'node': tmp_node,
                 'fn':   undefined
             }),
             enumerable: true
         });
 
-    tmp_node = (node['memberships'] || node[`${prefix['domain']}memberships`]);
+    tmp_node = (node['memberships'] || node[`${prefix_domain_model}memberships`]);
     if (tmp_node)
-        Object.defineProperty(fn, `${prefix['domain']}memberships`, {
+        Object.defineProperty(fn, `${prefix_domain_model}memberships`, {
             value:      new Memberships({
-                'type': [],
+                'prefix_ldp_model': prefix_ldp_model,
+                //   'type': [],
                 'node': tmp_node,
                 'fn':   undefined
             }),
             enumerable: true
         });
 
-    tmp_node = (node['credentials'] || node[`${prefix['domain']}credentials`]);
+    tmp_node = (node['credentials'] || node[`${prefix_domain_model}credentials`]);
     if (tmp_node)
-        Object.defineProperty(fn, `${prefix['domain']}credentials`, {
+        Object.defineProperty(fn, `${prefix_domain_model}credentials`, {
             value:      new Credentials({
-                'type': [],
+                'prefix_ldp_model': prefix_ldp_model,
+                //  'type': [],
                 'node': tmp_node,
                 'fn':   undefined
             }),
@@ -134,10 +160,12 @@ Object.defineProperties(Domain, {
 exports.Domain = Domain;
 
 function Users({
-                   'prefix':    prefix = {
+                   'prefix':           prefix = {
                        'contains': "ldp:",
                        'domain':   "domain:"
                    },
+                   'prefix_ldp_model': prefix_ldp_model = "",
+                   //
                    'type':      type = [],
                    'predicate': predicate = undefined,
                    'fn':        fn,
@@ -161,7 +189,7 @@ function Users({
             };
             let temp_prefix;
 
-            temp_prefix               = `${prefix.contains}contains`;
+            temp_prefix               = `${prefix_ldp_model}contains`;
             // TODO: wie sieht das im graphen (node) aus... wie sind die users dort abgebildet?
             presentation[temp_prefix] = (contains.map((user) => {
                 return ((typeof user === "string") ? user : user['@id']);
@@ -189,11 +217,11 @@ function Users({
              * TODO: node NOT string?!?
              * TODO: if we decide to accept string, so user has already to be in place in given store!!!
              * */
-            value:      async (user) => {
+            value:      async (resource) => {
                 // TODO: node to array
                 try {
                     // TODO: validate user
-                    contains.push(user);
+                    contains.push(resource);
                 } catch (jex) {
                     throw jex;
                 } // try
@@ -211,11 +239,13 @@ Object.defineProperties(Users, {
 exports.Users = Users;
 
 function Groups({
-                    'prefix':    prefix = {
+                    'prefix':           prefix = {
                         'contains': "ldp:",
                         'member':   "ldp:",
                         'domain':   "domain:"
                     },
+                    'prefix_ldp_model': prefix_ldp_model = "",
+                    //
                     'type':      type = [],
                     'predicate': predicate = undefined,
                     'fn':        fn,
@@ -239,7 +269,7 @@ function Groups({
             };
             let temp_prefix;
 
-            temp_prefix               = `${prefix.contains}contains`;
+            temp_prefix               = `${prefix_ldp_model}contains`;
             // TODO: wie sieht das im graphen (node) aus... wie sind die users dort abgebildet?
             presentation[temp_prefix] = (contains.map((resource) => {
                 return ((typeof resource === "string") ? resource : resource['@id']);
@@ -289,11 +319,13 @@ Object.defineProperties(Groups, {
 exports.Groups = Groups;
 
 function Roles({
-                   'prefix':    prefix = {
+                   'prefix':           prefix = {
                        'contains': "ldp:",
                        'member':   "ldp:",
                        'domain':   "domain:"
                    },
+                   'prefix_ldp_model': prefix_ldp_model = "",
+                   //
                    'type':      type = [],
                    'predicate': predicate = undefined,
                    'fn':        fn,
@@ -317,7 +349,7 @@ function Roles({
             };
             let temp_prefix;
 
-            temp_prefix               = `${prefix.contains}contains`;
+            temp_prefix               = `${prefix_ldp_model}contains`;
             // TODO: wie sieht das im graphen (node) aus... wie sind die users dort abgebildet?
             presentation[temp_prefix] = (contains.map((role) => {
                 return ((typeof role === "string") ? role : role['@id']);
@@ -345,11 +377,11 @@ function Roles({
              * TODO: node NOT string?!?
              * TODO: if we decide to accept string, so user has already to be in place in given store!!!
              * */
-            value:      async (role) => {
+            value:      async (resource) => {
                 // TODO: node to array
                 try {
                     // TODO: validate user
-                    contains.push(role);
+                    contains.push(resource);
                 } catch (jex) {
                     throw jex;
                 } // try
@@ -367,11 +399,13 @@ Object.defineProperties(Roles, {
 exports.Roles = Roles;
 
 function Memberships({
-                         'prefix':    prefix = {
+                         'prefix':           prefix = {
                              'contains': "ldp:",
                              'member':   "ldp:",
                              'domain':   "domain:"
                          },
+                         'prefix_ldp_model': prefix_ldp_model = "",
+                         //
                          'type':      type = [],
                          'predicate': predicate = undefined,
                          'fn':        fn,
@@ -395,10 +429,10 @@ function Memberships({
             };
             let temp_prefix;
 
-            temp_prefix               = `${prefix.contains}contains`;
+            temp_prefix               = `${prefix_ldp_model}contains`;
             // TODO: wie sieht das im graphen (node) aus... wie sind die users dort abgebildet?
-            presentation[temp_prefix] = (contains.map((role) => {
-                return ((typeof role === "string") ? role : role['@id']);
+            presentation[temp_prefix] = (contains.map((membership) => {
+                return ((typeof membership === "string") ? membership : membership['@id']);
             }) || []);
 
             return presentation;
@@ -422,11 +456,11 @@ function Memberships({
              * TODO: node NOT string?!?
              * TODO: if we decide to accept string, so user has already to be in place in given store!!!
              * */
-            value:      async (role) => {
+            value:      async (resource) => {
                 // TODO: node to array
                 try {
                     // TODO: validate user
-                    contains.push(role);
+                    contains.push(resource);
                 } catch (jex) {
                     throw jex;
                 } // try
@@ -444,11 +478,13 @@ Object.defineProperties(Memberships, {
 exports.Memberships = Memberships;
 
 function Credentials({
-                         'prefix':    prefix = {
+                         'prefix':           prefix = {
                              'contains': "ldp:",
                              'member':   "ldp:",
                              'domain':   "domain:"
                          },
+                         'prefix_ldp_model': prefix_ldp_model = "",
+                         //
                          'type':      type = [],
                          'predicate': predicate = undefined,
                          'fn':        fn,
@@ -472,7 +508,7 @@ function Credentials({
             };
             let temp_prefix;
 
-            temp_prefix               = `${prefix.contains}contains`;
+            temp_prefix               = `${prefix_ldp_model}contains`;
             // TODO: wie sieht das im graphen (node) aus... wie sind die users dort abgebildet?
             presentation[temp_prefix] = (contains.map((credential) => {
                 return ((typeof credential === "string") ? credential : credential['@id']);
@@ -500,11 +536,11 @@ function Credentials({
              * TODO: node NOT string?!?
              * TODO: if we decide to accept string, so user has already to be in place in given store!!!
              * */
-            value:      async (role) => {
+            value:      async (resource) => {
                 // TODO: node to array
                 try {
                     // TODO: validate user
-                    contains.push(role);
+                    contains.push(resource);
                 } catch (jex) {
                     throw jex;
                 } // try
