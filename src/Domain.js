@@ -1,3 +1,7 @@
+const
+    domain_model_preferredPrefix = "domm:"
+;
+
 //region error
 
 class ErrorDomainIdIsMissing extends Error {
@@ -17,6 +21,8 @@ function timestamp() {
 //endregion fn
 
 function Domain({
+                    '@context':               context_parent = [],
+                    '@id':                    id,
                     'prefix':                 prefix = {
                         'system': "sys:",
                         'sys':    "sys:",
@@ -35,46 +41,73 @@ function Domain({
                     'prefix_testbed':         prefix_testbed = "",
                     'prefix_testbed_model':   prefix_testbed_model = "",
                     //
-                    'type':      type = [],
-                    'predicate': predicate = undefined,
-                    'fn':        fn,
-                    'node':      node
+                    'type':             type = [],
+                    'predicate':        predicate = undefined,
+                    'fn':               fn,
+                    'node':             node,
+                    'owner':            owner,
+                    'contextHasPrefix': contextHasPrefix,
+                    'idAsBlankNode':    idAsBlankNode,
+                    'randomLeaveId':    randomLeaveId
                 }) {
 
-    let tmp_node = undefined;
+    const
+        context_self = context_parent.concat(Domain['@context']) // REM: self context
+    ;
+    let
+        tmp_node     = undefined,
+        tmp_prefix   = undefined
+    ;
 
+    id = ((id) ? id : idAsBlankNode("domain/"));
     type.push(Domain);
 
     fn = (fn || (async function domain(presentation) {
         try {
-            presentation    = (presentation || {});
-            presentation    = {
+            presentation = (presentation || {});
+            presentation = {
                 '@id':   (presentation['@id'] || domain['@id']),
                 '@type': domain['@type'].map((type) => {
                     return (type['@id'] || type);
                 })
             };
-            let temp_prefix = "";
 
-            temp_prefix = `${prefix_domain_model}users`;
-            if (domain[temp_prefix] && !presentation[temp_prefix])
-                presentation[temp_prefix] = await domain[temp_prefix]();
+            let tmp_predicate = "";
 
-            temp_prefix = `${prefix_domain_model}groups`;
-            if (domain[temp_prefix] && !presentation[temp_prefix])
-                presentation[temp_prefix] = await domain[temp_prefix]();
+            tmp_predicate = (contextHasPrefix({
+                'context': Domain['@context'],
+                'prefix':  "users"
+            }) ? "users" : `${domain_model_preferredPrefix}:users`);
+            if (domain[tmp_predicate] && !presentation[tmp_predicate])
+                presentation[tmp_predicate] = await domain[tmp_predicate]();
 
-            temp_prefix = `${prefix_domain_model}roles`;
-            if (domain[temp_prefix] && !presentation[temp_prefix])
-                presentation[temp_prefix] = await domain[temp_prefix]();
+            tmp_predicate = (contextHasPrefix({
+                'context': Domain['@context'],
+                'prefix':  "groups"
+            }) ? "groups" : `${domain_model_preferredPrefix}:groups`);
+            if (domain[tmp_predicate] && !presentation[tmp_predicate])
+                presentation[tmp_predicate] = await domain[tmp_predicate]();
 
-            temp_prefix = `${prefix_domain_model}memberships`;
-            if (domain[temp_prefix] && !presentation[temp_prefix])
-                presentation[temp_prefix] = await domain[temp_prefix]();
+            tmp_predicate = (contextHasPrefix({
+                'context': Domain['@context'],
+                'prefix':  "roles"
+            }) ? "roles" : `${domain_model_preferredPrefix}:roles`);
+            if (domain[tmp_predicate] && !presentation[tmp_predicate])
+                presentation[tmp_predicate] = await domain[tmp_predicate]();
 
-            temp_prefix = `${prefix_domain_model}credentials`;
-            if (domain[temp_prefix] && !presentation[temp_prefix])
-                presentation[temp_prefix] = await domain[temp_prefix]();
+            tmp_predicate = (contextHasPrefix({
+                'context': Domain['@context'],
+                'prefix':  "memberships"
+            }) ? "memberships" : `${domain_model_preferredPrefix}:memberships`);
+            if (domain[tmp_predicate] && !presentation[tmp_predicate])
+                presentation[tmp_predicate] = await domain[tmp_predicate]();
+
+            tmp_predicate = (contextHasPrefix({
+                'context': Domain['@context'],
+                'prefix':  "credentials"
+            }) ? "credentials" : `${domain_model_preferredPrefix}:credentials`);
+            if (domain[tmp_predicate] && !presentation[tmp_predicate])
+                presentation[tmp_predicate] = await domain[tmp_predicate]();
 
             return presentation;
         } catch (jex) {
@@ -91,9 +124,13 @@ function Domain({
         });
     } // if ()
 
-    tmp_node = (node['users'] || node[`${prefix_domain_model}users`]);
-    if (tmp_node)
-        Object.defineProperty(fn, `${prefix_domain_model}users`, {
+    tmp_node = (node['users'] || node[`${domain_model_preferredPrefix}users`]);
+    if (tmp_node) {
+        tmp_prefix = (contextHasPrefix({
+            'context': Domain['@context'],
+            'prefix':  "users"
+        }) ? "" : domain_model_preferredPrefix);
+        Object.defineProperty(fn, `${tmp_prefix}users`, {
             value:      new Users({
                 'prefix_ldp_model': prefix_ldp_model,
                 //
@@ -103,10 +140,15 @@ function Domain({
             }),
             enumerable: true
         });
+    } // if ()
 
-    tmp_node = (node['groups'] || node[`${prefix_domain_model}groups`]);
-    if (tmp_node)
-        Object.defineProperty(fn, `${prefix_domain_model}groups`, {
+    tmp_node = (node['groups'] || node[`${domain_model_preferredPrefix}groups`]);
+    if (tmp_node) {
+        tmp_prefix = (contextHasPrefix({
+            'context': Domain['@context'],
+            'prefix':  "groups"
+        }) ? "" : domain_model_preferredPrefix);
+        Object.defineProperty(fn, `${tmp_prefix}groups`, {
             value:      new Groups({
                 'prefix_ldp_model': prefix_ldp_model,
                 //   'type': [],
@@ -115,10 +157,15 @@ function Domain({
             }),
             enumerable: true
         });
+    }
 
-    tmp_node = (node['roles'] || node[`${prefix_domain_model}roles`]);
-    if (tmp_node)
-        Object.defineProperty(fn, `${prefix_domain_model}roles`, {
+    tmp_node = (node['roles'] || node[`${domain_model_preferredPrefix}roles`]);
+    if (tmp_node) {
+        tmp_prefix = (contextHasPrefix({
+            'context': Domain['@context'],
+            'prefix':  "roles"
+        }) ? "" : domain_model_preferredPrefix);
+        Object.defineProperty(fn, `${tmp_prefix}roles`, {
             value:      new Roles({
                 'prefix_ldp_model': prefix_ldp_model,
                 //  'type': [],
@@ -127,10 +174,15 @@ function Domain({
             }),
             enumerable: true
         });
+    }
 
-    tmp_node = (node['memberships'] || node[`${prefix_domain_model}memberships`]);
-    if (tmp_node)
-        Object.defineProperty(fn, `${prefix_domain_model}memberships`, {
+    tmp_node = (node['memberships'] || node[`${domain_model_preferredPrefix}memberships`]);
+    if (tmp_node) {
+        tmp_prefix = (contextHasPrefix({
+            'context': Domain['@context'],
+            'prefix':  "memberships"
+        }) ? "" : domain_model_preferredPrefix);
+        Object.defineProperty(fn, `${tmp_prefix}memberships`, {
             value:      new Memberships({
                 'prefix_ldp_model': prefix_ldp_model,
                 //   'type': [],
@@ -139,10 +191,15 @@ function Domain({
             }),
             enumerable: true
         });
+    }
 
-    tmp_node = (node['credentials'] || node[`${prefix_domain_model}credentials`]);
-    if (tmp_node)
-        Object.defineProperty(fn, `${prefix_domain_model}credentials`, {
+    tmp_node = (node['credentials'] || node[`${domain_model_preferredPrefix}credentials`]);
+    if (tmp_node) {
+        tmp_prefix = (contextHasPrefix({
+            'context': Domain['@context'],
+            'prefix':  "credentials"
+        }) ? "" : domain_model_preferredPrefix);
+        Object.defineProperty(fn, `${tmp_prefix}credentials`, {
             value:      new Credentials({
                 'prefix_ldp_model': prefix_ldp_model,
                 //  'type': [],
@@ -151,11 +208,26 @@ function Domain({
             }),
             enumerable: true
         });
+    }
 
     return fn;
 } // Domain()
 Object.defineProperties(Domain, {
-    '@id': {value: "fua.domain.Domain", enumerable: true}
+    '@context': {
+        value:          [{
+            '@base': "http://testbed.nicos-rd.com/fua/domain#Domain",
+            'domm':  "http://testbed.nicos-rd.com/fua/domain#",
+            //
+            'Domain':      "http://testbed.nicos-rd.com/fua/domain#Domain",
+            'domain':      "http://testbed.nicos-rd.com/fua/domain#domain",
+            'users':       "http://testbed.nicos-rd.com/fua/domain#Users",
+            'groups':      "http://testbed.nicos-rd.com/fua/domain#Groups",
+            'roles':       "http://testbed.nicos-rd.com/fua/domain#Roles",
+            'memberships': "http://testbed.nicos-rd.com/fua/domain#Memberships",
+            'credentials': "http://testbed.nicos-rd.com/fua/domain#Credentials"
+        }], enumerable: true
+    },
+    '@id':      {value: "http://testbed.nicos-rd.com/fua/domain#Domain", enumerable: true}
 });
 exports.Domain = Domain;
 
@@ -233,7 +305,21 @@ function Users({
     return fn;
 } // Users()
 Object.defineProperties(Users, {
-    '@id':             {value: "fua.domain.Users", enumerable: true},
+    '@context':        {
+        value:          [{
+            '@base': "http://testbed.nicos-rd.com/",
+            'tb':    "http://testbed.nicos-rd.com/",
+            'tbm':   "http://testbed.nicos-rd.com/",
+            //
+            'sysm': "http://testbed.nicos-rd.com/fua/system#",
+            'domm': "http://testbed.nicos-rd.com/fua/domain#",
+            //
+            'system':    "http://testbed.nicos-rd.com/fua/system#system",
+            'domain':    "http://testbed.nicos-rd.com/fua/domain#domain",
+            'testsuite': "http://testsuite.nicos-rd.com/"
+        }], enumerable: true
+    },
+    '@id':             {value: "http://nicos-rd.com/fua/domain#Users", enumerable: true},
     'rdfs:subClassOf': {value: "ldp:BasicContainer", enumerable: true}
 });
 exports.Users = Users;
@@ -254,7 +340,7 @@ function Groups({
 
     let contains = []; // REM: ldp:BasicContainer.contains
 
-    type.push(Users);
+    type.push(Groups);
     type.push("ldp:BasicContainer");
 
     fn = (fn || (async function groups(presentation) {
@@ -313,7 +399,7 @@ function Groups({
     return fn;
 } // Groups()
 Object.defineProperties(Groups, {
-    '@id':             {value: "fua.domain.Groups", enumerable: true},
+    '@id':             {value: "http://www.nicos-rd.com/fua/domain#Groups", enumerable: true},
     'rdfs:subClassOf': {value: "ldp:BasicContainer", enumerable: true}
 });
 exports.Groups = Groups;
@@ -334,7 +420,7 @@ function Roles({
 
     let contains = []; // REM: ldp:BasicContainer.contains
 
-    type.push(Users);
+    type.push(Roles);
     type.push("ldp:BasicContainer");
 
     fn = (fn || (async function roles(presentation) {
@@ -393,7 +479,7 @@ function Roles({
     return fn;
 } // Roles()
 Object.defineProperties(Roles, {
-    '@id':             {value: "fua.domain.Roles", enumerable: true},
+    '@id':             {value: "http://www.nicos-rd.com/fua/domain#Roles", enumerable: true},
     'rdfs:subClassOf': {value: "ldp:BasicContainer", enumerable: true}
 });
 exports.Roles = Roles;
@@ -414,7 +500,7 @@ function Memberships({
 
     let contains = []; // REM: ldp:BasicContainer.contains
 
-    type.push(Users);
+    type.push(Memberships);
     type.push("ldp:BasicContainer");
 
     fn = (fn || (async function memberships(presentation) {
@@ -472,7 +558,7 @@ function Memberships({
     return fn;
 } // Memberships()
 Object.defineProperties(Memberships, {
-    '@id':             {value: "fua.domain.Memberships", enumerable: true},
+    '@id':             {value: "http://www.nicos-rd.com/fua/domain#Memberships", enumerable: true},
     'rdfs:subClassOf': {value: "ldp:BasicContainer", enumerable: true}
 });
 exports.Memberships = Memberships;
@@ -493,7 +579,7 @@ function Credentials({
 
     let contains = []; // REM: ldp:BasicContainer.contains
 
-    type.push(Users);
+    type.push(Credentials);
     type.push("ldp:BasicContainer");
 
     fn = (fn || (async function credentials(presentation) {
@@ -552,7 +638,7 @@ function Credentials({
     return fn;
 } // Credentials()
 Object.defineProperties(Credentials, {
-    '@id':             {value: "fua.domain.Credentials", enumerable: true},
+    '@id':             {value: "http://www.nicos-rd.com/fua/domain#Credentials", enumerable: true},
     'rdfs:subClassOf': {value: "ldp:BasicContainer", enumerable: true}
 });
 exports.Credentials = Credentials;
