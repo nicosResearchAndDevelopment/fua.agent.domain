@@ -76,6 +76,13 @@ function Domain({
 
             tmp_predicate = (contextHasPrefix({
                 'context': Domain['@context'],
+                'prefix':  "owner"
+            }) ? "owner" : `${domain_model_preferredPrefix}:owner`);
+            if (domain[tmp_predicate] && !presentation[tmp_predicate])
+                presentation[tmp_predicate] = await domain[tmp_predicate]();
+
+            tmp_predicate = (contextHasPrefix({
+                'context': Domain['@context'],
                 'prefix':  "users"
             }) ? "users" : `${domain_model_preferredPrefix}:users`);
             if (domain[tmp_predicate] && !presentation[tmp_predicate])
@@ -109,6 +116,9 @@ function Domain({
             if (domain[tmp_predicate] && !presentation[tmp_predicate])
                 presentation[tmp_predicate] = await domain[tmp_predicate]();
 
+            // TODO : tickets
+            // TODO : sessions
+
             return presentation;
         } catch (jex) {
             throw jex;
@@ -123,6 +133,19 @@ function Domain({
             '@type': {value: type, enumerable: true}
         });
     } // if ()
+
+    tmp_prefix = (contextHasPrefix({'context': Domain['@context'], 'prefix': "owner"}) ? "" : "system:");
+    Object.defineProperties(fn, {
+        [`${tmp_prefix}owner`]: {
+            value:      async () => {
+                return {
+                    '@id':   ((typeof node['owner'] === "string") ? node['owner'] : (node['owner']['@id'] || null)),
+                    '@type': "foaf:Agent"
+                };
+            },
+            enumerable: true
+        }
+    }); // Object.defineProperties()
 
     tmp_node = (node['users'] || node[`${domain_model_preferredPrefix}users`]);
     if (tmp_node) {
@@ -210,6 +233,9 @@ function Domain({
         });
     }
 
+    // TODO : tickets
+    // TODO : sessions
+
     return fn;
 } // Domain()
 Object.defineProperties(Domain, {
@@ -220,6 +246,7 @@ Object.defineProperties(Domain, {
             //
             'Domain':      "http://testbed.nicos-rd.com/fua/domain#Domain",
             'domain':      "http://testbed.nicos-rd.com/fua/domain#domain",
+            'owner':       "http://testbed.nicos-rd.com/fua/domain#owner",
             'users':       "http://testbed.nicos-rd.com/fua/domain#Users",
             'groups':      "http://testbed.nicos-rd.com/fua/domain#Groups",
             'roles':       "http://testbed.nicos-rd.com/fua/domain#Roles",
@@ -244,7 +271,7 @@ function Users({
                    'node':      node
                }) {
 
-    let contains = []; // REM: ldp:BasicContainer.contains
+    let contains = new Map(); // REM: ldp:BasicContainer.contains
 
     type.push(Users);
     type.push("ldp:BasicContainer");
@@ -263,19 +290,17 @@ function Users({
 
             temp_prefix               = `${prefix_ldp_model}contains`;
             // TODO: wie sieht das im graphen (node) aus... wie sind die users dort abgebildet?
-            presentation[temp_prefix] = (contains.map((user) => {
-                return ((typeof user === "string") ? user : user['@id']);
-            }) || []);
+            presentation[temp_prefix] = await fn.key();
 
             return presentation;
         } catch (jex) {
             throw jex;
         } // try
-    }));
+    })); // fn
 
     if (new.target) {
         if (!node['@id'])
-            throw new Error("Users : id is missing");
+            throw new Error("Domain : Users :: id is missing");
         Object.defineProperties(fn, {
             '@id':   {value: node['@id'], enumerable: true},
             '@type': {value: type, enumerable: true}
@@ -284,12 +309,32 @@ function Users({
 
     // TODO: this has to come from a decorator (decorate ldp:BasicContainer)
     Object.defineProperties(fn, {
-        'add': {
+        'key':   {
+            value:         async () => {
+                return [...contains.keys()];
+            }, enumerable: true
+        },
+        'value': {
+            value:         async () => {
+                return [...contains.values()];
+            }, enumerable: true
+        },
+        'has':   {
+            value:         async (id) => {
+                return (contains.get(((typeof id === "string") ? id : id['@id'])) ? true : false);
+            }, enumerable: true
+        },
+        'get':   {
+            value:         async (id) => {
+                return contains.get(id);
+            }, enumerable: true
+        },
+        'add':   {
             /**
              * TODO: node NOT string?!?
              * TODO: if we decide to accept string, so user has already to be in place in given store!!!
              * */
-            value:      async (resource) => {
+            value:         async (resource) => {
                 // TODO: node to array
                 try {
                     // TODO: validate user
@@ -297,22 +342,22 @@ function Users({
                 } catch (jex) {
                     throw jex;
                 } // try
-            },
-            enumerable: false
+            }, enumerable: false
         } // add
-    });
+    }); // Object.defineProperties()
 
     return fn;
 } // Users()
 Object.defineProperties(Users, {
     '@context':        {
         value:          [{
-            '@base': "http://testbed.nicos-rd.com/",
-            'tb':    "http://testbed.nicos-rd.com/",
-            'tbm':   "http://testbed.nicos-rd.com/",
-            //
             'sysm': "http://testbed.nicos-rd.com/fua/system#",
             'domm': "http://testbed.nicos-rd.com/fua/domain#",
+            //
+            '@base':  "http://testbed.nicos-rd.com",
+            '@vocab': "/",
+            'tb':     "http://testbed.nicos-rd.com/",
+            'tbm':    "http://testbed.nicos-rd.com/",
             //
             'system':    "http://testbed.nicos-rd.com/fua/system#system",
             'domain':    "http://testbed.nicos-rd.com/fua/domain#domain",
@@ -638,8 +683,27 @@ function Credentials({
     return fn;
 } // Credentials()
 Object.defineProperties(Credentials, {
+    "@context":        {
+        value:          [{
+            "foaf":  "http://xmlns.com/foaf/0.1/",
+            "Agent": "http://xmlns.com/foaf/0.1/Agent",
+            //
+            "sysm": "http://www.nicos-rd.com/fua/system#",
+            //
+            "@base":       "http://www.nicos-rd.com/fua/domain",
+            "vocab":       "#",
+            "Credentials": {"@type": "@vocab"},
+            "owner":       {"@type": "@vocab"},
+            //
+            "session": "http://www.nicos-rd.com/fua/session#session"
+        }], enumerable: true
+    },
     '@id':             {value: "http://www.nicos-rd.com/fua/domain#Credentials", enumerable: true},
     'rdfs:subClassOf': {value: "ldp:BasicContainer", enumerable: true}
 });
 exports.Credentials = Credentials;
 
+// TODO : tickets
+// TODO : sessions
+
+// EOF
