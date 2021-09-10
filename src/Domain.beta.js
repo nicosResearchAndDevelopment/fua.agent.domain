@@ -21,7 +21,8 @@ function timestamp() {
 //endregion fn
 
 function Domain({
-                    'config': config
+                    'config': config,
+                    'amec':   amec = undefined
                 }) {
 
     const
@@ -49,7 +50,8 @@ function Domain({
             'users': {
                 value:
                               Object.defineProperties(async () => {
-                                  return [];
+                                  await Users.read();
+                                  return Users['ldp:member'];
                               }, {
                                   'id':  {value: `${id}user`},
                                   'get': {
@@ -99,6 +101,12 @@ function Domain({
             //}
             //endregion domain.user
         }); // Object.defineProperties()
+        if (amec)
+            Object.defineProperty(domain, 'authenticate', {
+                value:         async (credentials, mechanism) => {
+                    return await amec['authenticate'](credentials, mechanism, domain.users);
+                }, enumerable: false
+            });
     } // if ()
 
     //tmp_prefix = (contextHasPrefix({'context': Domain['@context'], 'prefix': "owner"}) ? "" : "system:");
