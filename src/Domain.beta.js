@@ -55,7 +55,7 @@ function Domain({
                                   'get': {
                                       value:         async (id) => {
 
-                                          let user_ = {};
+                                          //let user_ = {};
                                           await Users.read();
 
                                           //space.on('change', 1000, Users['@id'], async (data) => {
@@ -74,9 +74,9 @@ function Domain({
                                           if (!user || !await user.read())
                                               throw new Error(``);
 
-                                          user_['@id'] = user['@id'];
-                                          //return user;
-                                          return user_;
+                                          //user_['@id'] = user['@id'];
+                                          return user;
+                                          //return user_;
 
                                       }, enumerable: false
                                   },
