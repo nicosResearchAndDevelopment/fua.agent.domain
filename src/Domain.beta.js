@@ -1,5 +1,5 @@
 const
-    domain_model_preferredPrefix = "domm:"
+    domain_model_preferredPrefix = "dom:"
 ;
 
 //region error
@@ -26,9 +26,10 @@ function Domain({
                 }) {
 
     const
-        id    = config['@id'],
-        Users = config['dom:users'][0],
-        space = config.space
+        id     = config['@id'],
+        Users  = config['dom:users'][0],
+        Groups = config['dom:groups'][0],
+        space  = config.space
     ;
 
     let
@@ -45,7 +46,7 @@ function Domain({
                 value:      id,
                 enumerable: true
             }
-            //region domain.user
+            //region domain.users
             ,
             'users': {
                 value:
@@ -53,7 +54,7 @@ function Domain({
                                   await Users.read();
                                   return Users['ldp:member'];
                               }, {
-                                  'id':  {value: `${id}user`},
+                                  'id':  {value: `${id}users`},
                                   'get': {
                                       value:         async (id) => {
 
@@ -95,18 +96,100 @@ function Domain({
                                   }
                               }) // Object.defineProperties()
                 , enumerable: true
-            } // users
+            }, // users
+            'user':  {
+                value:
+                              Object.defineProperties({}, {
+                                  'memberOf': {
+                                      value:         async (user, group) => {
+                                          return await domain.group.hasMember(group, user);
+                                      }, enumerable: false
+                                  } // memberOf
+                              }) // Object.defineProperties()
+                , enumerable: true
+            } // user
             //'user_has_group': {
             //  value: (user_id, group_id) => {}, enumerable: false
             //}
-            //endregion domain.user
+            //endregion domain.users
+            //region domain.groups
+            ,
+            'groups': {
+                value:
+                              Object.defineProperties(async () => {
+                                  await Groups.read();
+                                  return Groups['ldp:member'];
+                              }, {
+                                  'id':  {value: `${id}groups`},
+                                  'get': {
+                                      value:         async (id) => {
+
+                                          //let user_ = {};
+                                          await Groups.read();
+
+                                          //space.on('change', 1000, Users['@id'], async (data) => {
+                                          //    if (data)
+                                          //        await Users.read();
+                                          //    Users_map = ...;
+                                          //});
+
+                                          id = space.factory.namedNode(id).value;
+
+                                          let
+                                              group = Groups['ldp:member'].find((node) => {
+                                                  return (node['@id'] === id);
+                                              })
+                                          ;
+                                          if (!group || !await group.read())
+                                              throw new Error(``);
+
+                                          //user_['@id'] = user['@id'];
+                                          return group;
+                                      }, enumerable: false
+                                  },
+                                  'has': {
+                                      value:         async (id) => {
+                                          id        = ((typeof id === "string") ? id : id['@id']);
+                                          let
+                                              group = space.getNode(id)
+                                          ;
+                                          if (!await group.read())
+                                              return false;
+                                          return true;
+                                      }, enumerable: false
+                                  }
+                              }) // Object.defineProperties()
+                , enumerable: true
+            }, // groups
+            'group':  {
+                value:
+                              Object.defineProperties({}, {
+                                  'hasMember': {
+                                      value:         async (group, member) => {
+                                          let result = false;
+                                          group      = ((typeof group === "string") ? group : group['@id']);
+                                          member     = ((typeof member === "string") ? member : member['@id']);
+                                          group      = await domain.groups.get(group);
+
+                                          result = group['ldp:member'].find((entry) => {
+                                              return (entry['@id'] === member);
+                                          });
+                                          return !!result;
+                                      }, enumerable: false
+                                  } // hasMember
+                              }) // Object.defineProperties()
+                , enumerable: true
+            } // groups
+            //endregion domain.groups
         }); // Object.defineProperties()
+
         if (amec)
             Object.defineProperty(domain, 'authenticate', {
                 value:         async (credentials, mechanism) => {
                     return await amec['authenticate'](credentials, mechanism, domain.users);
                 }, enumerable: false
             });
+
     } // if ()
 
     //tmp_prefix = (contextHasPrefix({'context': Domain['@context'], 'prefix': "owner"}) ? "" : "system:");
@@ -217,7 +300,7 @@ function Domain({
 } // Domain()
 
 Object.defineProperties(Domain, {
-    'id': {value: "http://testbed.nicos-rd.com/fua/domain#Domain", enumerable: true}
+    'id': {value: "http://www.nicos-rd.com/fua/domain#Domain", enumerable: true}
 });
 
 exports.Domain = Domain;
