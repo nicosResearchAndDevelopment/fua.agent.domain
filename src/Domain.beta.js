@@ -141,9 +141,9 @@ function Domain({
                                               })
                                           ;
                                           if (!group || !await group.read())
+                                              // TODO : better error...
                                               throw new Error(``);
 
-                                          //user_['@id'] = user['@id'];
                                           return group;
                                       }, enumerable: false
                                   },
@@ -170,7 +170,6 @@ function Domain({
                                           group      = ((typeof group === "string") ? group : group['@id']);
                                           member     = ((typeof member === "string") ? member : member['@id']);
                                           group      = await domain.groups.get(group);
-
                                           result = group['ldp:member'].find((entry) => {
                                               return (entry['@id'] === member);
                                           });
