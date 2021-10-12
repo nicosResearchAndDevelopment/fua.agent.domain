@@ -54,15 +54,15 @@ function Domain({
                                   await Users.read();
                                   return Users['ldp:member'];
                               }, {
-                                  'id':  {value: `${id}users`},
-                                  'get': {
+                                  'id':        {value: `${id}users`},
+                                  'get':       {
                                       value:         async (id) => {
-                                      //value:         async (node) => {
-                                      //value:         async (predicate, value) => {
+                                          //value:         async (node) => {
+                                          //value:         async (predicate, value) => {
 
-                                          let
-                                              filter_properties = Object.entries(node)
-                                          ;
+                                          // let
+                                          //     filter_properties = Object.entries(node)
+                                          // ;
                                           //let user_ = {};
                                           await Users.read();
 
@@ -91,7 +91,35 @@ function Domain({
 
                                       }, enumerable: false
                                   },
-                                  'has': {
+                                  'getByAttr': {
+                                      value: async (predicateIRI, attributeValue) => {
+                                          // update users container and get all user nodes
+                                          await Users.read();
+                                          const userNodes = Users['ldp:member'];
+                                          // find all nodes that conform to the criteria of containing the sought attribute
+                                          const
+                                              predicate   = space.factory.namedNode(predicateIRI),
+                                              object      = space.factory.literal(attributeValue),
+                                              matches     = [];
+                                          await Promise.all(userNodes.map(async (userNode) => {
+                                              const
+                                                  subject    = space.factory.namedNode(userNode['@id']),
+                                                  soughtData = await space.getData(subject, predicate, object);
+                                              if (soughtData.size > 0) matches.push(userNode);
+                                          }));
+                                          // only pass if exactly one match was found
+                                          if (matches.length > 1) {
+                                              throw new Error('Domain#users.getByAttr : match was not unique');
+                                          } else if (matches.length < 1) {
+                                              return null;
+                                          } else {
+                                              // update the user if found
+                                              await matches[0].read();
+                                              return matches[0];
+                                          }
+                                      }
+                                  },
+                                  'has':       {
                                       value:         async (id) => {
                                           id       = ((typeof id === "string") ? id : id['@id']);
                                           let
