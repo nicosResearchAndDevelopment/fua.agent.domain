@@ -104,12 +104,12 @@ function Domain({
                                           await Promise.all(userNodes.map(async (userNode) => {
                                               const
                                                   subject    = space.factory.namedNode(userNode['@id']),
-                                                  soughtData = await space.getData(subject, predicate, object);
+                                                  soughtData = await space.readData(subject, predicate, object);
                                               if (soughtData.size > 0) matches.push(userNode);
                                           }));
                                           // only pass if exactly one match was found
                                           if (matches.length > 1) {
-                                              throw new Error('Domain#users.getByAttr : match was not unique');
+                                              throw new Error('Domain#users.getByAttr : match was not unique'); // TODO : better ERROR
                                           } else if (matches.length < 1) {
                                               return null;
                                           } else {
