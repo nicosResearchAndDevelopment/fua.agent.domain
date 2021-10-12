@@ -57,7 +57,12 @@ function Domain({
                                   'id':  {value: `${id}users`},
                                   'get': {
                                       value:         async (id) => {
+                                      //value:         async (node) => {
+                                      //value:         async (predicate, value) => {
 
+                                          let
+                                              filter_properties = Object.entries(node)
+                                          ;
                                           //let user_ = {};
                                           await Users.read();
 
@@ -71,6 +76,9 @@ function Domain({
 
                                           let
                                               user = Users['ldp:member'].find((node) => {
+                                                  //for(let [key, value] of filter_properties) {
+                                                  //
+                                                  //} // for
                                                   return (node['@id'] === id);
                                               })
                                           ;
@@ -170,7 +178,7 @@ function Domain({
                                           group      = ((typeof group === "string") ? group : group['@id']);
                                           member     = ((typeof member === "string") ? member : member['@id']);
                                           group      = await domain.groups.get(group);
-                                          result = group['ldp:member'].find((entry) => {
+                                          result     = group['ldp:member'].find((entry) => {
                                               return (entry['@id'] === member);
                                           });
                                           return !!result;
