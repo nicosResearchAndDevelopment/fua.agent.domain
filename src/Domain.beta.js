@@ -20,16 +20,21 @@ function timestamp() {
 
 //endregion fn
 
+/**
+ * @param {import("@nrd/fua.module.space").Space} space
+ * @param {import("@nrd/fua.module.space").Node} DomainRoot
+ * @param {import("@nrd/fua.agent.amec")} amec
+ */
 function Domain({
-                    'config': config,
-                    'amec':   amec = undefined
+                    'space':  space = undefined,
+                    'amec':   amec = undefined,
+                    'config': DomainRoot
                 }) {
 
     const
-        id     = config['id'],
-        Users  = config.getNode('dom:users'),
-        Groups = config.getNode('dom:groups')
-        //space  = config.space
+        id     = DomainRoot.id,
+        Users  = DomainRoot.getNode('dom:users'),
+        Groups = DomainRoot.getNode('dom:groups')
     ;
 
     let
@@ -51,64 +56,48 @@ function Domain({
             'users': {
                 value:
                               Object.defineProperties(async () => {
-                                  await Users.read();
-                                  return Users['ldp:member'];
+                                  await Users.load('ldp:member');
+                                  return Users.getNodes('ldp:member');
                               }, {
                                   'id':        {value: `${id}users`},
                                   'get':       {
                                       value:         async (id) => {
-                                          //value:         async (node) => {
-                                          //value:         async (predicate, value) => {
+                                          // 1. load members of the user container
+                                          await Users.load('ldp:member');
 
-                                          // let
-                                          //     filter_properties = Object.entries(node)
-                                          // ;
-                                          //let user_ = {};
-                                          await Users.read();
+                                          // 2. get all users in the container
+                                          const users = Users.getNodes('ldp:member');
 
-                                          //space.on('change', 1000, Users['@id'], async (data) => {
-                                          //    if (data)
-                                          //        await Users.read();
-                                          //    Users_map = ...;
-                                          //});
+                                          // 3. get the node to the id from the space
+                                          const node = space.getNode(id);
 
-                                          //id = space.factory.namedNode(id).value;
+                                          // 4. throw if the node is not included in the users
+                                          if (!users.includes(node))
+                                              throw new Error('non included in users');
 
-                                          //id = config.getNode(id);
-
-                                          let
-                                              user = Users.getNodes('ldp:member').find((node) => {
-                                                  //for(let [key, value] of filter_properties) {
-                                                  //
-                                                  //} // for
-                                                  return (node['id'] === id);
-                                              })
-                                          ;
-                                          if (!user || !await user.read())
-                                              throw new Error(``);
-
-                                          //user_['@id'] = user['@id'];
-                                          return user;
-                                          //return user_;
-
+                                          // 5. load the node and return
+                                          await node.load();
+                                          return node;
                                       }, enumerable: false
                                   },
                                   'getByAttr': {
                                       value: async (predicateIRI, attributeValue) => {
-                                          // update users container and get all user nodes
-                                          await Users.read();
-                                          const userNodes = Users['ldp:member'];
-                                          // find all nodes that conform to the criteria of containing the sought attribute
+                                          // 1. update users container and get all user nodes
+                                          await Users.load('ldp:member');
+                                          const userNodes = Users.getNode('ldp:member');
+
+                                          // 2. find all nodes that conform to the criteria of containing the sought attribute
                                           const
-                                              predicate   = space.factory.namedNode(predicateIRI),
-                                              object      = space.factory.literal(attributeValue),
-                                              matches     = [];
+                                              soughtAttribute = space.getLiteral(attributeValue),
+                                              matches         = [];
+
                                           await Promise.all(userNodes.map(async (userNode) => {
-                                              const
-                                                  subject    = space.factory.namedNode(userNode['@id']),
-                                                  soughtData = await space.readData(subject, predicate, object);
-                                              if (soughtData.size > 0) matches.push(userNode);
+                                              await userNode.load(predicateIRI);
+                                              const attributes = userNode.getLiterals(predicateIRI);
+                                              if (attributes.some(attribute => attribute.term.equals(soughtAttribute.term)))
+                                                  matches.push(userNode);
                                           }));
+
                                           // only pass if exactly one match was found
                                           if (matches.length > 1) {
                                               throw new Error('Domain#users.getByAttr : match was not unique'); // TODO : better ERROR
@@ -116,20 +105,24 @@ function Domain({
                                               return null;
                                           } else {
                                               // update the user if found
-                                              await matches[0].read();
+                                              await matches[0].load();
                                               return matches[0];
                                           }
                                       }
                                   },
                                   'has':       {
                                       value:         async (id) => {
-                                          id       = ((typeof id === "string") ? id : id['@id']);
-                                          let
-                                              user = space.getNode(id)
-                                          ;
-                                          if (!await user.read())
-                                              return false;
-                                          return true;
+                                          // 1. load members of the user container
+                                          await Users.load('ldp:member');
+
+                                          // 2. get all users in the container
+                                          const users = Users.getNodes('ldp:member');
+
+                                          // 3. get the node to the id from the space
+                                          const node = space.getNode(id);
+
+                                          // 4. return true if the node is included in the users
+                                          return users.includes(node);
                                       }, enumerable: false
                                   }
                               }) // Object.defineProperties()
