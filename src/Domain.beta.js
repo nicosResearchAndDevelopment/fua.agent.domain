@@ -26,10 +26,10 @@ function Domain({
                 }) {
 
     const
-        id     = config['@id'],
-        Users  = config['dom:users'][0],
-        Groups = config['dom:groups'][0],
-        space  = config.space
+        id     = config['id'],
+        Users  = config.getNode('dom:users'),
+        Groups = config.getNode('dom:groups')
+        //space  = config.space
     ;
 
     let
@@ -72,14 +72,16 @@ function Domain({
                                           //    Users_map = ...;
                                           //});
 
-                                          id = space.factory.namedNode(id).value;
+                                          //id = space.factory.namedNode(id).value;
+
+                                          //id = config.getNode(id);
 
                                           let
-                                              user = Users['ldp:member'].find((node) => {
+                                              user = Users.getNodes('ldp:member').find((node) => {
                                                   //for(let [key, value] of filter_properties) {
                                                   //
                                                   //} // for
-                                                  return (node['@id'] === id);
+                                                  return (node['id'] === id);
                                               })
                                           ;
                                           if (!user || !await user.read())
