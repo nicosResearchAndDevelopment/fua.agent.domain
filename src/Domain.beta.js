@@ -84,7 +84,7 @@ function Domain({
                                       value: async (predicateIRI, attributeValue) => {
                                           // 1. update users container and get all user nodes
                                           await Users.load('ldp:member');
-                                          const userNodes = Users.getNode('ldp:member');
+                                          const userNodes = Users.getNodes('ldp:member');
 
                                           // 2. find all nodes that conform to the criteria of containing the sought attribute
                                           const
