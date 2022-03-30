@@ -79,7 +79,7 @@ class DomainAgent {
     } // DomainAgent#space
 
     /**
-     * @returns {Promise<fua.module.space.Node>}
+     * @returns {Promise<Array<fua.module.space.Node>>}
      */
     async getAllUsers() {
         // REM this is the position to implement caching of users and scheduled refreshes
@@ -168,7 +168,7 @@ class DomainAgent {
     } // DomainAgent#userMemberOf
 
     /**
-     * @returns {Promise<fua.module.space.Node>}
+     * @returns {Promise<Array<fua.module.space.Node>>}
      */
     async getAllGroups() {
         // REM this is the position to implement caching of groups and scheduled refreshes
