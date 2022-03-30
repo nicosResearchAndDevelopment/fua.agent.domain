@@ -27,11 +27,22 @@ class DomainAgent {
     /** @type {fua.module.space.Node} */
     #groupsNode = null;
 
+    /**
+     * @param {{
+     *            uri: string
+     *         }} options
+     */
     constructor(options = {}) {
         util.assert(util.isNonEmptyString(options.uri), 'expected uri to be a non empty string');
         this.#uri = options.uri;
     } // DomainAgent#constructor
 
+    /**
+     * @param {{
+     *            space: fua.module.space.Space
+     *         }} options
+     * @returns {Promise<DomainAgent>}
+     */
     async initialize(options = {}) {
         this.emit('initialize', options);
 
@@ -67,6 +78,9 @@ class DomainAgent {
         return this.#space;
     } // DomainAgent#space
 
+    /**
+     * @returns {Promise<fua.module.space.Node>}
+     */
     async getAllUsers() {
         // REM this is the position to implement caching of users and scheduled refreshes
         // 1. load members of the user container
@@ -77,6 +91,10 @@ class DomainAgent {
         return usersArr;
     } // DomainAgent#getAllUsers
 
+    /**
+     * @param {string} userId
+     * @returns {Promise<boolean>}
+     */
     async hasUserId(userId) {
         // 1. get all users as array
         const usersArr = await this.getAllUsers();
@@ -86,6 +104,10 @@ class DomainAgent {
         return usersArr.includes(userNode);
     } // DomainAgent#hasUserId
 
+    /**
+     * @param {string} userId
+     * @returns {Promise<fua.module.space.Node | null>}
+     */
     async getUserById(userId) {
         // 1. get all users as array
         const usersArr = await this.getAllUsers();
@@ -97,6 +119,11 @@ class DomainAgent {
         return await userNode.load();
     } // DomainAgent#getUserById
 
+    /**
+     * @param {string} predicateId
+     * @param {string} objectValue
+     * @returns {Promise<Array<fua.module.space.Node>>}
+     */
     async getAllUsersByAttribute(predicateId, objectValue) {
         // 1. get all users as array
         const usersArr   = await this.getAllUsers();
@@ -117,6 +144,11 @@ class DomainAgent {
         return resultArr;
     } // DomainAgent#getAllUsersByAttribute
 
+    /**
+     * @param {string} predicateId
+     * @param {string} objectValue
+     * @returns {Promise<fua.module.space.Node | null>}
+     */
     async getUserByAttribute(predicateId, objectValue) {
         // 1. get all users with the searched attribute
         const matchArr = await this.getAllUsersByAttribute(predicateId, objectValue);
@@ -126,10 +158,18 @@ class DomainAgent {
         return await matchArr[0].load();
     } // DomainAgent#getUserByAttribute
 
+    /**
+     * @param {fua.module.space.Node | string} userNode
+     * @param {fua.module.space.Node | string} groupNode
+     * @returns {Promise<boolean>}
+     */
     async userMemberOf(userNode, groupNode) {
         return await this.groupHasMember(groupNode, userNode);
     } // DomainAgent#userMemberOf
 
+    /**
+     * @returns {Promise<fua.module.space.Node>}
+     */
     async getAllGroups() {
         // REM this is the position to implement caching of groups and scheduled refreshes
         // 1. load members of the group container
@@ -140,6 +180,10 @@ class DomainAgent {
         return groupsArr;
     } // DomainAgent#getAllGroups
 
+    /**
+     * @param {string} groupId
+     * @returns {Promise<boolean>}
+     */
     async hasGroupId(groupId) {
         // 1. get all groups as array
         const groupsArr = await this.getAllGroups();
@@ -149,6 +193,10 @@ class DomainAgent {
         return groupsArr.includes(groupNode);
     } // DomainAgent#hasGroupId
 
+    /**
+     * @param {string} groupId
+     * @returns {Promise<fua.module.space.Node | null>}
+     */
     async getGroupById(groupId) {
         // 1. get all groups as array
         const groupsArr = await this.getAllGroups();
@@ -160,6 +208,11 @@ class DomainAgent {
         return await groupNode.load();
     } // DomainAgent#getGroupById
 
+    /**
+     * @param {string} predicateId
+     * @param {string} objectValue
+     * @returns {Promise<Array<fua.module.space.Node>>}
+     */
     async getAllGroupsByAttribute(predicateId, objectValue) {
         // 1. get all groups as array
         const groupsArr  = await this.getAllGroups();
@@ -180,6 +233,11 @@ class DomainAgent {
         return resultArr;
     } // DomainAgent#getAllGroupsByAttribute
 
+    /**
+     * @param {string} predicateId
+     * @param {string} objectValue
+     * @returns {Promise<fua.module.space.Node | null>}
+     */
     async getGroupByAttribute(predicateId, objectValue) {
         // 1. get all groups with the searched attribute
         const matchArr = await this.getAllGroupsByAttribute(predicateId, objectValue);
@@ -189,16 +247,25 @@ class DomainAgent {
         return await matchArr[0].load();
     } // DomainAgent#getGroupByAttribute
 
+    /**
+     * @param {fua.module.space.Node | string} groupNode
+     * @returns {Promise<Array<fua.module.space.Node>>}
+     */
     async getAllUsersOfGroup(groupNode) {
         if (util.isString(groupNode)) groupNode = await this.getGroupById(groupNode);
-        else util.assert(groupNode instanceof Node, 'expected groupNode to be an instance of a space Node');
+        util.assert(groupNode instanceof Node, 'expected groupNode to be an instance of a space Node');
         await groupNode.load('ldp:member');
         return groupNode.getNodes('ldp:member');
     } // DomainAgent#getAllUsersOfGroup
 
+    /**
+     * @param {fua.module.space.Node | string} groupNode
+     * @param {fua.module.space.Node | string} userNode
+     * @returns {Promise<boolean>}
+     */
     async groupHasMember(groupNode, userNode) {
         if (util.isString(userNode)) userNode = await this.getUserById(userNode);
-        else util.assert(userNode instanceof Node, 'expected userNode to be an instance of a space Node');
+        util.assert(userNode instanceof Node, 'expected userNode to be an instance of a space Node');
         const groupUsersArr = await this.getAllUsersOfGroup(groupNode);
         return groupUsersArr.includes(userNode);
     } // DomainAgent#groupHasMember
