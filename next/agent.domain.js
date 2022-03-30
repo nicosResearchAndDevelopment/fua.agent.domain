@@ -67,7 +67,7 @@ class DomainAgent {
         return this.#space;
     } // DomainAgent#space
 
-    async getUsersArray() {
+    async getAllUsers() {
         // REM this is the position to implement caching of users and scheduled refreshes
         // 1. load members of the user container
         await this.#usersNode.load('ldp:member');
@@ -75,11 +75,11 @@ class DomainAgent {
         const usersArr = this.#usersNode.getNodes('ldp:member');
         this.emit('users-refreshed', usersArr);
         return usersArr;
-    } // DomainAgent#getUsersArray
+    } // DomainAgent#getAllUsers
 
     async hasUserId(userId) {
         // 1. get all users as array
-        const usersArr = await this.getUsersArray();
+        const usersArr = await this.getAllUsers();
         // 2. get the user node to the id from the space
         const userNode = space.getNode(userId);
         // 3. return if the node is included in the users array
@@ -88,7 +88,7 @@ class DomainAgent {
 
     async getUserById(userId) {
         // 1. get all users as array
-        const usersArr = await this.getUsersArray();
+        const usersArr = await this.getAllUsers();
         // 2. get the user node to the id from the space
         const userNode = space.getNode(userId);
         // 3. return null if the node is not included in the users array
@@ -99,7 +99,7 @@ class DomainAgent {
 
     async getAllUsersByAttribute(predicateId, objectValue) {
         // 1. get all users as array
-        const usersArr   = await this.getUsersArray();
+        const usersArr   = await this.getAllUsers();
         // 2. find all nodes that conform to the criteria of containing the sought attribute
         const
             soughtObject = space.getLiteral(objectValue),
@@ -130,7 +130,7 @@ class DomainAgent {
         return await this.groupHasMember(groupNode, userNode);
     } // DomainAgent#userMemberOf
 
-    async getGroupsArray() {
+    async getAllGroups() {
         // REM this is the position to implement caching of groups and scheduled refreshes
         // 1. load members of the group container
         await this.#groupsNode.load('ldp:member');
@@ -138,11 +138,11 @@ class DomainAgent {
         const groupsArr = this.#groupsNode.getNodes('ldp:member');
         this.emit('groups-refreshed', groupsArr);
         return groupsArr;
-    } // DomainAgent#getGroupsArray
+    } // DomainAgent#getAllGroups
 
     async hasGroupId(groupId) {
         // 1. get all groups as array
-        const groupsArr = await this.getGroupsArray();
+        const groupsArr = await this.getAllGroups();
         // 2. get the group node to the id from the space
         const groupNode = space.getNode(groupId);
         // 3. return if the node is included in the groups array
@@ -151,7 +151,7 @@ class DomainAgent {
 
     async getGroupById(groupId) {
         // 1. get all groups as array
-        const groupsArr = await this.getGroupsArray();
+        const groupsArr = await this.getAllGroups();
         // 2. get the group node to the id from the space
         const groupNode = space.getNode(groupId);
         // 3. return null if the node is not included in the groups array
@@ -162,7 +162,7 @@ class DomainAgent {
 
     async getAllGroupsByAttribute(predicateId, objectValue) {
         // 1. get all groups as array
-        const groupsArr  = await this.getGroupsArray();
+        const groupsArr  = await this.getAllGroups();
         // 2. find all nodes that conform to the criteria of containing the sought attribute
         const
             soughtObject = space.getLiteral(objectValue),
