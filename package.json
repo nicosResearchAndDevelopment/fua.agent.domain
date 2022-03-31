@@ -1,0 +1,44 @@
+{
+  "name": "@nrd/fua.agent.domain",
+  "version": "1.0.0",
+  "description": "Agent class for the server domain.",
+  "exports": {
+    ".": {
+      "require": "./src/agent.Domain.js"
+    },
+    "./beta": {
+      "require": "./src/agent.Domain.beta.js"
+    },
+    "./next": {
+      "require": "./next/agent.domain.js"
+    }
+  },
+  "files": [
+    "src/*"
+  ],
+  "dependencies": {
+    "@nrd/fua.core.util": "1.0.0",
+    "@nrd/fua.module.space": "1.0.0"
+  },
+  "devDependencies": {
+    "mocha": "^8.2.1",
+    "expect": "^26.6.2"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "mocha": {
+    "bail": false,
+    "recursive": false,
+    "spec": "test/*.test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "ssh://git@git02.int.nsc.ag:10022/Research/fua/lib/agent.domain.git"
+  },
+  "keywords": [
+    "domain"
+  ],
+  "author": "jlangkau@nicos-ag.com",
+  "license": "UNLICENSED"
+}
