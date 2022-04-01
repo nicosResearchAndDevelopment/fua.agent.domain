@@ -270,6 +270,10 @@ class DomainAgent {
         return groupUsersArr.includes(userNode);
     } // DomainAgent#groupHasMember
 
+    // TODO roles
+    // TODO memberships
+    // TODO credentials
+
     on(event, listener) {
         this.#emitter.on(event, listener);
         return this;
