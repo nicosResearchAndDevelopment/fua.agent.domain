@@ -96,10 +96,11 @@ class DomainAgent {
      * @returns {Promise<boolean>}
      */
     async hasUserId(userId) {
+        util.assert(this.#space, 'expected space to be initialized');
         // 1. get all users as array
         const usersArr = await this.getAllUsers();
         // 2. get the user node to the id from the space
-        const userNode = space.getNode(userId);
+        const userNode = this.#space.getNode(userId);
         // 3. return if the node is included in the users array
         return usersArr.includes(userNode);
     } // DomainAgent#hasUserId
@@ -109,10 +110,11 @@ class DomainAgent {
      * @returns {Promise<fua.module.space.Node | null>}
      */
     async getUserById(userId) {
+        util.assert(this.#space, 'expected space to be initialized');
         // 1. get all users as array
         const usersArr = await this.getAllUsers();
         // 2. get the user node to the id from the space
-        const userNode = space.getNode(userId);
+        const userNode = this.#space.getNode(userId);
         // 3. return null if the node is not included in the users array
         if (!usersArr.includes(userNode)) return null;
         // 4. load the node and return
@@ -125,11 +127,12 @@ class DomainAgent {
      * @returns {Promise<Array<fua.module.space.Node>>}
      */
     async getAllUsersByAttribute(predicateId, objectValue) {
+        util.assert(this.#space, 'expected space to be initialized');
         // 1. get all users as array
         const usersArr   = await this.getAllUsers();
         // 2. find all nodes that conform to the criteria of containing the sought attribute
         const
-            soughtObject = space.getLiteral(objectValue),
+            soughtObject = this.#space.getLiteral(objectValue),
             soughtTerm   = soughtObject.term,
             resultArr    = [];
         await Promise.all(usersArr.map(async (userNode) => {
@@ -185,10 +188,11 @@ class DomainAgent {
      * @returns {Promise<boolean>}
      */
     async hasGroupId(groupId) {
+        util.assert(this.#space, 'expected space to be initialized');
         // 1. get all groups as array
         const groupsArr = await this.getAllGroups();
         // 2. get the group node to the id from the space
-        const groupNode = space.getNode(groupId);
+        const groupNode = this.#space.getNode(groupId);
         // 3. return if the node is included in the groups array
         return groupsArr.includes(groupNode);
     } // DomainAgent#hasGroupId
@@ -198,10 +202,11 @@ class DomainAgent {
      * @returns {Promise<fua.module.space.Node | null>}
      */
     async getGroupById(groupId) {
+        util.assert(this.#space, 'expected space to be initialized');
         // 1. get all groups as array
         const groupsArr = await this.getAllGroups();
         // 2. get the group node to the id from the space
-        const groupNode = space.getNode(groupId);
+        const groupNode = this.#space.getNode(groupId);
         // 3. return null if the node is not included in the groups array
         if (!groupsArr.includes(groupNode)) return null;
         // 4. load the node and return
@@ -214,11 +219,12 @@ class DomainAgent {
      * @returns {Promise<Array<fua.module.space.Node>>}
      */
     async getAllGroupsByAttribute(predicateId, objectValue) {
+        util.assert(this.#space, 'expected space to be initialized');
         // 1. get all groups as array
         const groupsArr  = await this.getAllGroups();
         // 2. find all nodes that conform to the criteria of containing the sought attribute
         const
-            soughtObject = space.getLiteral(objectValue),
+            soughtObject = this.#space.getLiteral(objectValue),
             soughtTerm   = soughtObject.term,
             resultArr    = [];
         await Promise.all(groupsArr.map(async (groupNode) => {
