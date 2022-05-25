@@ -5,9 +5,9 @@ const
     {DataFactory}            = require('@nrd/fua.module.persistence'),
     InmemoryStore            = require('@nrd/fua.module.persistence.inmemory'),
     {Space}                  = require('@nrd/fua.module.space'),
-    DomainAgent              = require('./agent.domain.js');
+    DomainAgent              = require('../src/agent.domain.js');
 
-describe('agent.domain/next', function () {
+describe('agent.domain', function () {
 
     test('basic usage', async function () {
         const

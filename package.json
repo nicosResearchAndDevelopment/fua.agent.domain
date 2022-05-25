@@ -2,17 +2,7 @@
   "name": "@nrd/fua.agent.domain",
   "version": "1.0.0",
   "description": "Agent class for the server domain.",
-  "exports": {
-    ".": {
-      "require": "./src/agent.Domain.js"
-    },
-    "./beta": {
-      "require": "./src/agent.Domain.beta.js"
-    },
-    "./next": {
-      "require": "./next/agent.domain.js"
-    }
-  },
+  "main": "src/agent.domain.js",
   "files": [
     "src/*"
   ],
@@ -39,6 +29,6 @@
   "keywords": [
     "domain"
   ],
-  "author": "jlangkau@nicos-ag.com",
+  "author": "spetrac@nicos-ag.com",
   "license": "UNLICENSED"
 }
