@@ -7,33 +7,29 @@ assert(!global[identifier], 'unable to load a second uncached version of the sin
 Object.defineProperty(global, identifier, {value: Domain, configurable: false, writable: false, enumerable: false});
 
 const
-    _Domain       = Object.create(null),
-    EventEmitter  = require('events'),
-    {Space, Node} = require('@nrd/fua.module.space'),
-    is            = require('@nrd/fua.core.is');
+    _Domain      = Object.create(null),
+    EventEmitter = require('events'),
+    Space        = require('@nrd/fua.agent.space'),
+    is           = require('@nrd/fua.core.is');
 
 Object.defineProperties(Domain, {
-    uri:   {get: () => _Domain.uri || null, enumerable: true},
-    node:  {get: () => _Domain.domainNode || null, enumerable: true},
-    space: {get: () => _Domain.space || null, enumerable: true}
+    uri:  {get: () => _Domain.uri || null, enumerable: true},
+    node: {get: () => _Domain.domainNode || null, enumerable: true}
 });
 
 _Domain.emitter    = new EventEmitter();
 _Domain.uri        = '';
-_Domain.space      = null;
 _Domain.domainNode = null;
 _Domain.usersNode  = null;
 _Domain.groupsNode = null;
 
 Domain.initialize = async function (options = {}) {
-    assert(!_Domain.space, 'already initialized');
-    assert.object(options, {uri: is.string.token, space: value => value instanceof Space});
+    assert(!_Domain.uri, 'already initialized');
+    assert.object(options, {uri: is.string.token});
     _Domain.uri = options.uri;
-    /** @type {fua.module.space.Space} */
-    _Domain.space = options.space;
 
     /** @type {fua.module.space.Node} */
-    _Domain.domainNode = _Domain.space.getNode(_Domain.uri);
+    _Domain.domainNode = Space.getNode(_Domain.uri);
     await _Domain.domainNode.load();
     assert(_Domain.domainNode.type, `node for "${_Domain.uri}" not found in the space`);
 
@@ -56,7 +52,7 @@ Domain.initialize = async function (options = {}) {
  * @returns {Promise<Array<fua.module.space.Node>>}
  */
 Domain.getAllUsers = async function () {
-    assert(_Domain.space, 'not initialized');
+    assert(_Domain.uri, 'not initialized');
     // REM this is the position to implement caching of users and scheduled refreshes
     // 1. load members of the user container
     await _Domain.usersNode.load('ldp:member');
@@ -71,11 +67,11 @@ Domain.getAllUsers = async function () {
  * @returns {Promise<boolean>}
  */
 Domain.hasUserId = async function (userId) {
-    assert(_Domain.space, 'not initialized');
+    assert(_Domain.uri, 'not initialized');
     // 1. get all users as array
     const usersArr = await Domain.getAllUsers();
     // 2. get the user node to the id from the space
-    const userNode = _Domain.space.getNode(userId);
+    const userNode = Space.getNode(userId);
     // 3. return if the node is included in the users array
     return usersArr.includes(userNode);
 };
@@ -85,11 +81,11 @@ Domain.hasUserId = async function (userId) {
  * @returns {Promise<fua.module.space.Node | null>}
  */
 Domain.getUserById = async function (userId) {
-    assert(_Domain.space, 'not initialized');
+    assert(_Domain.uri, 'not initialized');
     // 1. get all users as array
     const usersArr = await Domain.getAllUsers();
     // 2. get the user node to the id from the space
-    const userNode = _Domain.space.getNode(userId);
+    const userNode = Space.getNode(userId);
     // 3. return null if the node is not included in the users array
     if (!usersArr.includes(userNode)) return null;
     // 4. load the node and return
@@ -102,12 +98,12 @@ Domain.getUserById = async function (userId) {
  * @returns {Promise<Array<fua.module.space.Node>>}
  */
 Domain.getAllUsersByAttribute = async function (predicateId, objectValue) {
-    assert(_Domain.space, 'not initialized');
+    assert(_Domain.uri, 'not initialized');
     // 1. get all users as array
     const usersArr   = await Domain.getAllUsers();
     // 2. find all nodes that conform to the criteria of containing the sought attribute
     const
-        soughtObject = _Domain.space.getLiteral(objectValue),
+        soughtObject = Space.getLiteral(objectValue),
         soughtTerm   = soughtObject.term,
         resultArr    = [];
     await Promise.all(usersArr.map(async (userNode) => {
@@ -128,7 +124,7 @@ Domain.getAllUsersByAttribute = async function (predicateId, objectValue) {
  * @returns {Promise<fua.module.space.Node | null>}
  */
 Domain.getUserByAttribute = async function (predicateId, objectValue) {
-    assert(_Domain.space, 'not initialized');
+    assert(_Domain.uri, 'not initialized');
     // 1. get all users with the searched attribute
     const matchArr = await Domain.getAllUsersByAttribute(predicateId, objectValue);
     // 2. throw if match is not unique, else return result or null
@@ -143,7 +139,7 @@ Domain.getUserByAttribute = async function (predicateId, objectValue) {
  * @returns {Promise<boolean>}
  */
 Domain.userMemberOf = async function (userNode, groupNode) {
-    assert(_Domain.space, 'not initialized');
+    assert(_Domain.uri, 'not initialized');
     return await Domain.groupHasMember(groupNode, userNode);
 };
 
@@ -151,7 +147,7 @@ Domain.userMemberOf = async function (userNode, groupNode) {
  * @returns {Promise<Array<fua.module.space.Node>>}
  */
 Domain.getAllGroups = async function () {
-    assert(_Domain.space, 'not initialized');
+    assert(_Domain.uri, 'not initialized');
     // REM this is the position to implement caching of groups and scheduled refreshes
     // 1. load members of the group container
     await _Domain.groupsNode.load('ldp:member');
@@ -166,11 +162,11 @@ Domain.getAllGroups = async function () {
  * @returns {Promise<boolean>}
  */
 Domain.hasGroupId = async function (groupId) {
-    assert(_Domain.space, 'not initialized');
+    assert(_Domain.uri, 'not initialized');
     // 1. get all groups as array
     const groupsArr = await Domain.getAllGroups();
     // 2. get the group node to the id from the space
-    const groupNode = _Domain.space.getNode(groupId);
+    const groupNode = Space.getNode(groupId);
     // 3. return if the node is included in the groups array
     return groupsArr.includes(groupNode);
 };
@@ -180,11 +176,11 @@ Domain.hasGroupId = async function (groupId) {
  * @returns {Promise<fua.module.space.Node | null>}
  */
 Domain.getGroupById = async function (groupId) {
-    assert(_Domain.space, 'not initialized');
+    assert(_Domain.uri, 'not initialized');
     // 1. get all groups as array
     const groupsArr = await Domain.getAllGroups();
     // 2. get the group node to the id from the space
-    const groupNode = _Domain.space.getNode(groupId);
+    const groupNode = Space.getNode(groupId);
     // 3. return null if the node is not included in the groups array
     if (!groupsArr.includes(groupNode)) return null;
     // 4. load the node and return
@@ -197,12 +193,12 @@ Domain.getGroupById = async function (groupId) {
  * @returns {Promise<Array<fua.module.space.Node>>}
  */
 Domain.getAllGroupsByAttribute = async function (predicateId, objectValue) {
-    assert(_Domain.space, 'not initialized');
+    assert(_Domain.uri, 'not initialized');
     // 1. get all groups as array
     const groupsArr  = await Domain.getAllGroups();
     // 2. find all nodes that conform to the criteria of containing the sought attribute
     const
-        soughtObject = _Domain.space.getLiteral(objectValue),
+        soughtObject = Space.getLiteral(objectValue),
         soughtTerm   = soughtObject.term,
         resultArr    = [];
     await Promise.all(groupsArr.map(async (groupNode) => {
@@ -223,7 +219,7 @@ Domain.getAllGroupsByAttribute = async function (predicateId, objectValue) {
  * @returns {Promise<fua.module.space.Node | null>}
  */
 Domain.getGroupByAttribute = async function (predicateId, objectValue) {
-    assert(_Domain.space, 'not initialized');
+    assert(_Domain.uri, 'not initialized');
     // 1. get all groups with the searched attribute
     const matchArr = await Domain.getAllGroupsByAttribute(predicateId, objectValue);
     // 2. throw if match is not unique, else return result or null
@@ -237,9 +233,9 @@ Domain.getGroupByAttribute = async function (predicateId, objectValue) {
  * @returns {Promise<Array<fua.module.space.Node>>}
  */
 Domain.getAllUsersOfGroup = async function (groupNode) {
-    assert(_Domain.space, 'not initialized');
+    assert(_Domain.uri, 'not initialized');
     if (is.string(groupNode)) groupNode = await Domain.getGroupById(groupNode);
-    assert(groupNode instanceof Node, 'expected groupNode to be an instance of a space Node');
+    assert(Space.isNode(groupNode), 'expected groupNode to be an instance of a space Node');
     await groupNode.load('ldp:member');
     return groupNode.getNodes('ldp:member');
 };
@@ -250,9 +246,9 @@ Domain.getAllUsersOfGroup = async function (groupNode) {
  * @returns {Promise<boolean>}
  */
 Domain.groupHasMember = async function (groupNode, userNode) {
-    assert(_Domain.space, 'not initialized');
+    assert(_Domain.uri, 'not initialized');
     if (is.string(userNode)) userNode = await Domain.getUserById(userNode);
-    assert(userNode instanceof Node, 'expected userNode to be an instance of a space Node');
+    assert(Space.isNode(userNode), 'expected userNode to be an instance of a space Node');
     const groupUsersArr = await Domain.getAllUsersOfGroup(groupNode);
     return groupUsersArr.includes(userNode);
 };
