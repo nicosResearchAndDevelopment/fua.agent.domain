@@ -2,13 +2,25 @@
   "name": "@nrd/fua.agent.domain",
   "version": "1.0.0",
   "description": "Agent class for the server domain.",
-  "main": "src/agent.domain.js",
+  "_main": "src/agent.domain.js",
+  "exports": {
+    ".": {
+      "require": "./src/agent.domain.js"
+    },
+    "./v2": {
+      "require": "./v2/domain.js"
+    }
+  },
   "files": [
-    "src/*"
+    "src/*",
+    "v2/*"
   ],
   "dependencies": {
     "@nrd/fua.core.util": "^1.0.0",
-    "@nrd/fua.module.space": "^1.0.0"
+    "@nrd/fua.module.space": "^1.0.0",
+    "@nrd/fua.core.assert": "^1.0.0",
+    "@nrd/fua.core.is": "^1.0.0",
+    "@nrd/fua.agent.space": "^1.0.0"
   },
   "devDependencies": {
     "mocha": "^8.2.1",
