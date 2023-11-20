@@ -23,6 +23,11 @@ _Domain.domainNode = null;
 _Domain.usersNode  = null;
 _Domain.groupsNode = null;
 
+Domain.on    = _Domain.emitter.on.bind(_Domain.emitter);
+Domain.once  = _Domain.emitter.once.bind(_Domain.emitter);
+Domain.off   = _Domain.emitter.off.bind(_Domain.emitter);
+_Domain.emit = _Domain.emitter.emit.bind(_Domain.emitter);
+
 Domain.initialize = async function (options = {}) {
     assert(!_Domain.uri, 'already initialized');
     assert.object(options, {uri: is.string.token});
@@ -58,7 +63,7 @@ Domain.getAllUsers = async function () {
     await _Domain.usersNode.load('ldp:member');
     // 2. return all users in the container as array
     const usersArr = _Domain.usersNode.getNodes('ldp:member');
-    Domain.emit('users-refreshed', usersArr);
+    _Domain.emit('users-refreshed', usersArr);
     return usersArr;
 };
 
@@ -153,7 +158,7 @@ Domain.getAllGroups = async function () {
     await _Domain.groupsNode.load('ldp:member');
     // 2. return all groups in the container as array
     const groupsArr = _Domain.groupsNode.getNodes('ldp:member');
-    Domain.emit('groups-refreshed', groupsArr);
+    _Domain.emit('groups-refreshed', groupsArr);
     return groupsArr;
 };
 
@@ -252,10 +257,6 @@ Domain.groupHasMember = async function (groupNode, userNode) {
     const groupUsersArr = await Domain.getAllUsersOfGroup(groupNode);
     return groupUsersArr.includes(userNode);
 };
-
-Domain.on   = _Domain.emitter.on.bind(_Domain.emitter);
-Domain.once = _Domain.emitter.once.bind(_Domain.emitter);
-Domain.off  = _Domain.emitter.off.bind(_Domain.emitter);
 
 Object.freeze(Domain);
 module.exports = Domain;
