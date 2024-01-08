@@ -1,7 +1,6 @@
 const
     {describe, test, before} = require('mocha'),
     expect                   = require('expect'),
-    fetch                    = require('node-fetch'),
     {DataFactory}            = require('@nrd/fua.module.persistence'),
     InmemoryStore            = require('@nrd/fua.module.persistence.inmemory'),
     {Space}                  = require('@nrd/fua.module.space'),
