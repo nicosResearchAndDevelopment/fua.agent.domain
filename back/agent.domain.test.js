@@ -1,9 +1,9 @@
 const
     {describe, test, before} = require('mocha'),
     expect                   = require('expect'),
-    {DataFactory}            = require('@nrd/fua.module.persistence'),
-    InmemoryStore            = require('@nrd/fua.module.persistence.inmemory'),
-    {Space}                  = require('@nrd/fua.module.space'),
+    {DataFactory}            = require('@fua/module.persistence'),
+    InmemoryStore            = require('@fua/module.persistence.inmemory'),
+    {Space}                  = require('@fua/module.space'),
     DomainAgent              = require('./agent.domain.js');
 
 describe('agent.domain', function () {

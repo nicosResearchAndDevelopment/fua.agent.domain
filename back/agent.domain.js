@@ -1,6 +1,6 @@
 const
     EventEmitter  = require('events'),
-    {Space, Node} = require('@nrd/fua.module.space'),
+    {Space, Node} = require('@fua/module.space'),
     util          = require('./agent.domain.util.js');
 
 class DomainAgent {

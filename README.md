@@ -1,1 +1,1 @@
-# @nrd/fua.agent.domain
+# @fua/agent.domain

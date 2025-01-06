@@ -1,7 +1,7 @@
 const
     Domain             = exports,
     {name: identifier} = require('../package.json'),
-    assert             = require('@nrd/fua.core.assert');
+    assert             = require('@fua/core.assert');
 
 assert(!global[identifier], 'unable to load a second uncached version of the singleton ' + identifier);
 Object.defineProperty(global, identifier, {value: Domain, configurable: false, writable: false, enumerable: false});
@@ -9,8 +9,8 @@ Object.defineProperty(global, identifier, {value: Domain, configurable: false, w
 const
     _Domain      = Object.create(null),
     EventEmitter = require('events'),
-    Space        = require('@nrd/fua.agent.space'),
-    is           = require('@nrd/fua.core.is');
+    Space        = require('@fua/agent.space'),
+    is           = require('@fua/core.is');
 
 Object.defineProperties(Domain, {
     uri:  {get: () => _Domain.uri || null, enumerable: true},
